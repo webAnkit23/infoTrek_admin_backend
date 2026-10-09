@@ -5,23 +5,10 @@ require("dotenv").config();
 
 const app = express();
 
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://info-trek-admin-frontend-dfkz.vercel.app/",
-  process.env.FRONTEND_URL,
-].filter(Boolean);
 
 app.use(
   cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-
-      return callback(
-        new Error(`CORS blocked origin: ${origin}`)
-      );
-    },
+    origin: "*",
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
