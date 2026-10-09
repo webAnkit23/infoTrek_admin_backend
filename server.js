@@ -58,7 +58,7 @@ app.use(async (req, res, next) => {
 app.use("/api/admin", require("./routes/registrationRoutes"));
 
 // Add this if your project has the corresponding route file:
-// app.use("/api/events", require("./routes/eventRoutes"));
+app.use("/api/events", require("./routes/eventRoutes"));
 
 app.get("/", (req, res) => {
   res.json({
