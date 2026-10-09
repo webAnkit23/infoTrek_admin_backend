@@ -1,10 +1,7 @@
-
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-const dotenv = require("dotenv");
-
-dotenv.config();
+require("dotenv").config();
 
 const app = express();
 
@@ -15,13 +12,14 @@ const allowedOrigins = [
 
 app.use(
   cors({
-    origin: function (origin, callback) {
-      // Allow requests without an Origin header, such as server-to-server calls.
+    origin: (origin, callback) => {
       if (!origin || allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
 
-      return callback(new Error(`CORS blocked origin: ${origin}`));
+      return callback(
+        new Error(`CORS blocked origin: ${origin}`)
+      );
     },
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -30,10 +28,48 @@ app.use(
 
 app.use(express.json());
 
-// Keep your existing routes.
+// MongoDB connection reused across serverless invocations.
+let connectionPromise;
+
+async function connectDB() {
+  if (mongoose.connection.readyState === 1) {
+    return;
+  }
+
+  if (!process.env.MONGO_URI) {
+    throw new Error("MONGO_URI is not configured");
+  }
+
+  if (!connectionPromise) {
+    connectionPromise = mongoose
+      .connect(process.env.MONGO_URI)
+      .catch((error) => {
+        connectionPromise = null;
+        throw error;
+      });
+  }
+
+  await connectionPromise;
+}
+
+// Ensure the database is connected before handling API requests.
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    console.error("MongoDB connection error:", error.message);
+    res.status(503).json({
+      success: false,
+      message: "Database connection failed",
+    });
+  }
+});
+
+// Existing routes
 app.use("/api/admin", require("./routes/registrationRoutes"));
 
-// If your admin frontend loads events, ensure this route exists too.
+// Add this if your project has the corresponding route file:
 // app.use("/api/events", require("./routes/eventRoutes"));
 
 app.get("/", (req, res) => {
@@ -43,4 +79,14 @@ app.get("/", (req, res) => {
   });
 });
 
-// Keep your existing MongoDB connection and startup code below.
+// Vercel uses the exported app.
+module.exports = app;
+
+// Local development only.
+if (require.main === module) {
+  const PORT = process.env.PORT || 5000;
+
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
