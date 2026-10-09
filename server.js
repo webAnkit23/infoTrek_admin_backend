@@ -7,6 +7,7 @@ const app = express();
 
 const allowedOrigins = [
   "http://localhost:5173",
+  "https://info-trek-admin-frontend-dfkz.vercel.app/",
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 
