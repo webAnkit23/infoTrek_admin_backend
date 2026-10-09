@@ -1,67 +1,46 @@
+
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const dotenv = require("dotenv");
-const eventRoutes = require("./routes/eventRoutes");
+
 dotenv.config();
-
-require("./models/User");
-require("./models/Event");
-require("./models/Registration");
-
-const registrationRoutes =
-    require("./routes/registrationRoutes");
 
 const app = express();
 
-app.use(cors());
+const allowedOrigins = [
+  "http://localhost:5173",
+  process.env.FRONTEND_URL,
+].filter(Boolean);
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // Allow requests without an Origin header, such as server-to-server calls.
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error(`CORS blocked origin: ${origin}`));
+    },
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
 app.use(express.json());
 
-// Routes
-app.use(
-    "/api/admin",
-    registrationRoutes
-);
+// Keep your existing routes.
+app.use("/api/admin", require("./routes/registrationRoutes"));
 
-// Test route
+// If your admin frontend loads events, ensure this route exists too.
+// app.use("/api/events", require("./routes/eventRoutes"));
+
 app.get("/", (req, res) => {
-
-    res.json({
-        success: true,
-        message: "InfoTrek Admin Backend Running"
-    });
-
+  res.json({
+    success: true,
+    message: "InfoTrek Admin Backend Running",
+  });
 });
-app.use("/api/events", eventRoutes);
 
-
-// MongoDB connection
-mongoose
-    .connect(process.env.MONGO_URI)
-    .then(() => {
-
-        console.log(
-            "MongoDB Atlas connected successfully"
-        );
-
-        const PORT =
-            process.env.PORT || 5000;
-
-        app.listen(PORT, () => {
-
-            console.log(
-                `Server running on port ${PORT}`
-            );
-
-        });
-
-    })
-    .catch((error) => {
-
-        console.error(
-            "MongoDB connection failed:",
-            error
-        );
-
-    });
+// Keep your existing MongoDB connection and startup code below.
