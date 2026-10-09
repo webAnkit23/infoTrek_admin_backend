@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-
+require("./User")
 const registrationSchema = new mongoose.Schema(
     {
         // Event for which the team is registering

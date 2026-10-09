@@ -8,16 +8,17 @@ const {
 } = require("../controllers/registrationController");
 
 
-router.get(
-    "/events/:eventId/registrations/:adminKey",
-    getEventRegistrations
-);
-
 
 router.get(
-    "/events/:eventId/registrations/excel/:adminKey",
-    downloadEventRegistrationsExcel
+  "/events/:eventId/registrations/excel/:adminKey",
+  downloadEventRegistrationsExcel
 );
+
+router.get(
+  "/events/:eventId/registrations/:adminKey",
+  getEventRegistrations
+);
+
 
 
 module.exports = router;
